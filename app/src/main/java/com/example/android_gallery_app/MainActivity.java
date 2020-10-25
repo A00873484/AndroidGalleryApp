@@ -184,8 +184,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         }
     }
 
-
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void scrollPhotos(View v) {
         Photo photo = null;
@@ -205,10 +203,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
             displayPhoto(photo);
         }
     }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void addCaption(View v) {
         displayPhoto(photoListPresenter.addCaption(caption.getText().toString()));
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void displayPhoto(Photo photo) {
@@ -253,6 +253,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 try {
                     String from = (String) data.getStringExtra("STARTTIMESTAMP");
                     String to = (String) data.getStringExtra("ENDTIMESTAMP");
+                    System.out.println(from);
+                    System.out.println(to);
                     startTimestamp = format.parse(from);
                     endTimestamp = format.parse(to);
                 } catch (Exception ex) {
@@ -262,7 +264,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 String keywords = (String) data.getStringExtra("KEYWORDS");
                 String topLeft = data.getStringExtra("TOPLEFT");
                 String bottomRight = data.getStringExtra("BOTTOMRIGHT");
-
                 displayPhoto(photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight));
             }
         }
@@ -276,19 +277,22 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void onSuccess(Location location) {
-                            // Got last known location. In some rare situations this can be null.
+                            double mLatitude = -1;
+                            double mLongitude = -1;
                             if (location != null) {
-                                double mLatitude = location.getLatitude();
-                                double mLongitude = location.getLongitude();
-                                //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
-                                imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
-                                //EditText et = (EditText) findViewById(R.id.etCaption);
-                                caption.setText("");
-                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                                Photo photo = new Photo ( mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
-                                photoListPresenter.addPhoto(photo, photosFilePath);
-                                displayPhoto(photo);
+                                mLatitude = location.getLatitude();
+                                mLongitude = location.getLongitude();
+
                             }
+                            //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
+                            imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
+                            //EditText et = (EditText) findViewById(R.id.etCaption);
+                            caption.setText("");
+                            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                            Photo photo = new Photo(mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
+                            photoListPresenter.addPhoto(photo, photosFilePath);
+                            displayPhoto(photo);
+
                         }
                     });
         }
