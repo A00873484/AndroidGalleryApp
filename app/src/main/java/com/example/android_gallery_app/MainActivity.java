@@ -24,6 +24,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android_gallery_app.model.GraphicFactory;
+import com.example.android_gallery_app.model.Photo;
 import com.example.android_gallery_app.model.PhotoList;
 import com.example.android_gallery_app.presenter.PhotoListPresenter;
 import com.example.android_gallery_app.view.MainView;
@@ -31,19 +33,13 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements Serializable, MainView {
@@ -69,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 88;
     private FusedLocationProviderClient fusedLocationClient;
     public String currentPhoto;
+    GraphicFactory graphicFactory;
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -85,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         reset = (Button) findViewById(R.id.reset);
 
         photoListPresenter = new PhotoList(MainActivity.this);
+        graphicFactory = new GraphicFactory();
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         try {
@@ -105,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     photosFilePath = f.getPath();
                     fileExists = true;
                     File myObj = new File(photosFilePath);
+                    photoListPresenter.clearList();
                     Scanner myReader = new Scanner(myObj);
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
@@ -264,7 +263,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 String topLeft = data.getStringExtra("TOPLEFT");
                 String bottomRight = data.getStringExtra("BOTTOMRIGHT");
 
-                photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight);
+                displayPhoto(photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight));
             }
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -286,8 +285,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                                 //EditText et = (EditText) findViewById(R.id.etCaption);
                                 caption.setText("");
                                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                                Photo photo = new Photo(mCurrentPhotoPath, mLatitude, mLongitude, timeStamp);
-                                photoListPresenter.addPhoto(photo);
+                                Photo photo = new Photo ( mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
+                                photoListPresenter.addPhoto(photo, photosFilePath);
                                 displayPhoto(photo);
                             }
                         }

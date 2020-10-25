@@ -1,8 +1,10 @@
-package com.example.android_gallery_app;
+package com.example.android_gallery_app.model;
+
+import com.example.android_gallery_app.presenter.Graphic;
 
 import java.io.Serializable;
 
-public class Photo implements Serializable {
+public class Photo implements Serializable, Graphic {
     String file, caption, timeStamp;
     Double lat, lng;
 
@@ -12,7 +14,7 @@ public class Photo implements Serializable {
         this.lng = lng;
         this.timeStamp = timeStamp;
     }
-    Photo(String file, Double lat, Double lng, String timeStamp, String caption) {
+    public Photo(String file, Double lat, Double lng, String timeStamp, String caption) {
         this.file = file;
         this.lat = lat;
         this.lng = lng;
