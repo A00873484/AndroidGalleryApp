@@ -16,6 +16,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     //List<Photo> list = new ArrayList<Photo>();
     //ArrayList<Photo> foundPhotos = new ArrayList<>();
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 88;
+    static final int EDIT_ACTIVITY_REQUEST_CODE = 80;
     private FusedLocationProviderClient fusedLocationClient;
     public String currentPhoto;
     GraphicFactory graphicFactory;
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Debug.startMethodTracing("onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -90,7 +93,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Debug.stopMethodTracing();
     }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void showOriginalView() throws IOException {
         boolean fileExists = false;
@@ -108,7 +113,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
                         String arr[] = data.split(",");
-                        photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr[4]));
+
+                        photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr.length>4?arr[4]:null));
                     }
                     displayPhoto(photoListPresenter.getPhoto());
                     break;
@@ -160,6 +166,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
     }
 
+    public void goToEdit(View view) throws IOException {
+        Intent intent = new Intent(this, EditActivity.class);
+        intent.putExtra("PHOTO", photoListPresenter.getPhoto());
+        startActivityForResult(intent, EDIT_ACTIVITY_REQUEST_CODE);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void deletePhoto(View view) throws IOException {
         photoListPresenter.deletePhoto(mCurrentPhotoPath);
@@ -167,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     }
 
     public void takePhoto(View v) throws IOException {
+        Debug.startMethodTracing("TakePhoto");
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile = null;
@@ -182,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+        Debug.stopMethodTracing();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -247,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE) {
+            Debug.startMethodTracing("SearchResult");
             if (resultCode == RESULT_OK) {
                 DateFormat format = new SimpleDateFormat("yyyy‐MM‐dd HH:mm:ss");
                 Date startTimestamp, endTimestamp;
@@ -266,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 String bottomRight = data.getStringExtra("BOTTOMRIGHT");
                 displayPhoto(photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight));
             }
+            Debug.stopMethodTracing();
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
