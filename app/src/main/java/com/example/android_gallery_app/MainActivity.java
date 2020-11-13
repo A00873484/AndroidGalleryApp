@@ -113,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
                         String arr[] = data.split(",");
-
                         photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr.length>4?arr[4]:null));
                     }
                     displayPhoto(photoListPresenter.getPhoto());

@@ -110,8 +110,12 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         }
         if (keywords.length() > 0) {
             for(Photo ph : list) {
-                if (!ph.getCaption().contains(keywords)) {
+                if(ph.getCaption() == null){
                     removedPhotos.add(ph);
+                }
+                else if (!ph.getCaption().contains(keywords)) {
+                    removedPhotos.add(ph);
+
                 }
             }
         }
