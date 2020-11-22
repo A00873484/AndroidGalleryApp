@@ -45,6 +45,11 @@ import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements Serializable, MainView {
 
+    static
+    {
+        System.loadLibrary("NativeImageProcessor");
+    }
+
     private PhotoListPresenter photoListPresenter;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
