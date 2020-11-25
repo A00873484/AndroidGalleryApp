@@ -47,14 +47,4 @@
             android:value="cloudinary://591658565797914:erV4pxQqYtbYiUlxHD5EN9-eFPc@dbipqagyd"/>
     </application>
 
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        android:required="true" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" />
-
 </manifest>
