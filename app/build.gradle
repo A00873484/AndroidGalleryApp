@@ -44,5 +44,5 @@ dependencies {
     }
     annotationProcessor 'com.github.bumptech.glide:compiler:4.5.0'
     implementation 'com.github.zomato:androidphotofilters:1.0.1'
-
+    implementation 'com.github.zomato:androidphotofilters:1.0.1'
 }

@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(Intent.createChooser(GalleryIntent,
                 "select video"), SELECT_VIDEO);
     }
-
+  
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void scrollPhotos(View v) {
         Photo photo = null;
