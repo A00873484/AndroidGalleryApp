@@ -5,7 +5,7 @@ import com.example.android_gallery_app.presenter.Graphic;
 import java.io.Serializable;
 
 public class Photo implements Serializable, Graphic {
-    String file, caption, timeStamp;
+    String file, caption, timeStamp, type;
     Double lat, lng;
 
     Photo(String file, Double lat, Double lng, String timeStamp) {
@@ -21,10 +21,17 @@ public class Photo implements Serializable, Graphic {
         this.timeStamp = timeStamp;
         this.caption = caption;
     }
+    public Photo(String file) {
+        this.file = file;
+        this.type = "gif";
+    }
     public String getFile() {
         return file;
     }
 
+    public String getType() {
+        return type;
+    }
     public void setFile(String file) {
         this.file = file;
     }
@@ -55,6 +62,11 @@ public class Photo implements Serializable, Graphic {
                 + "," + this.getLat()
                 + "," + this.getTimeStamp()
                 + "," + this.getCaption()
+                + "\n";
+    }
+    public String toString(boolean isGif) {
+        return  this.getFile()
+                + "," + this.getType()
                 + "\n";
     }
 }
