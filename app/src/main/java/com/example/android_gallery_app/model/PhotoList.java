@@ -78,7 +78,6 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         File file = new File(Environment.getExternalStorageDirectory()
                 .getAbsolutePath(), "/Android/data/com.example.android_gallery_app/files/Pictures");
         File[] fList = file.listFiles();
-<<<<<<< HEAD
 
         // Remove all the gif files, we do not want these results to show in the search
         for (Photo photo: list) {
@@ -88,11 +87,11 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         }
         list.removeAll(removedPhotos);
 
-=======
+
         if(startTimestamp == null || endTimestamp == null){
             return null;
         }
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
+
         if (fList != null) {
             for (File f : fList) {
                 String split[] = f.getPath().split("\\.");
@@ -123,14 +122,10 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
                 if(ph.getCaption() == null){
                     removedPhotos.add(ph);
                 }
-<<<<<<< HEAD
-
-=======
                 else if (!ph.getCaption().contains(keywords)) {
                     removedPhotos.add(ph);
 
                 }
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
             }
         }
         System.out.println("HEY LOOK HERE TOO");

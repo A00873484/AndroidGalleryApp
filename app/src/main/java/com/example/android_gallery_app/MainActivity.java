@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     Scanner myReader = new Scanner(myObj);
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
-<<<<<<< HEAD
                         if( data.contains("gif")) {
                             photoListPresenter.addPhoto(new Photo(data.substring(0, data.length() - 4)));
                         }
@@ -143,10 +142,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                             }
                             photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], caption));
                         }
-=======
-                        String arr[] = data.split(",");
-                        photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr.length>4?arr[4]:null));
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
                     }
                     displayPhoto(photoListPresenter.getPhoto());
                     break;
@@ -229,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         }
         Debug.stopMethodTracing();
     }
-<<<<<<< HEAD
+
     public void uploadVideo(View v) throws IOException {
         Intent GalleryIntent = new Intent();
         GalleryIntent.setType("video/*");
@@ -237,8 +232,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(Intent.createChooser(GalleryIntent,
                 "select video"), SELECT_VIDEO);
     }
-=======
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void scrollPhotos(View v) {
@@ -265,12 +258,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         displayPhoto(photoListPresenter.addCaption(caption.getText().toString()));
     }
 
-<<<<<<< HEAD
     public void sortFiles(View v) {
         photoListPresenter.sortList();
     }
-=======
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void displayPhoto(Photo photo) {

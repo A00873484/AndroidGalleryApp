@@ -29,13 +29,11 @@ public class Photo implements Serializable, Graphic {
         return file;
     }
 
-<<<<<<< HEAD
     public String getType() {
         return type;
-=======
+    }
     public void setFile(String file) {
         this.file = file;
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
     }
 
     public String getTimeStamp() {

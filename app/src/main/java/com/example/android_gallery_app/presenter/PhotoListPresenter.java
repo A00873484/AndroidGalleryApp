@@ -15,9 +15,5 @@ public interface PhotoListPresenter {
     Photo getPhoto();
     Photo getPhotoByLocation(String loc);
     Photo scrollPhotos(Boolean proc);
-<<<<<<< HEAD
-
     void sortList();
-=======
->>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
 }
