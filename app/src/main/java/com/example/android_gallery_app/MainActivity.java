@@ -18,6 +18,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -57,6 +58,11 @@ import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements Serializable, MainView {
 
+    static
+    {
+        System.loadLibrary("NativeImageProcessor");
+    }
+
     private PhotoListPresenter photoListPresenter;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -73,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     ProgressBar progressBar;
 
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 88;
+    static final int EDIT_ACTIVITY_REQUEST_CODE = 80;
     private FusedLocationProviderClient fusedLocationClient;
     GraphicFactory graphicFactory;
 
@@ -80,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Debug.startMethodTracing("onCreate");
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -102,7 +110,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Debug.stopMethodTracing();
     }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void showOriginalView() throws IOException {
         boolean fileExists = false;
@@ -119,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     Scanner myReader = new Scanner(myObj);
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
+<<<<<<< HEAD
                         if( data.contains("gif")) {
                             photoListPresenter.addPhoto(new Photo(data.substring(0, data.length() - 4)));
                         }
@@ -132,6 +143,10 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                             }
                             photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], caption));
                         }
+=======
+                        String arr[] = data.split(",");
+                        photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr.length>4?arr[4]:null));
+>>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
                     }
                     displayPhoto(photoListPresenter.getPhoto());
                     break;
@@ -183,6 +198,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
     }
 
+    public void goToEdit(View view) throws IOException {
+        Intent intent = new Intent(this, EditActivity.class);
+        intent.putExtra("PHOTO", photoListPresenter.getPhoto());
+        startActivityForResult(intent, EDIT_ACTIVITY_REQUEST_CODE);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void deletePhoto(View view) throws IOException {
         photoListPresenter.deletePhoto(mCurrentPhotoPath);
@@ -190,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     }
 
     public void takePhoto(View v) throws IOException {
+        Debug.startMethodTracing("TakePhoto");
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile = null;
@@ -205,7 +227,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+        Debug.stopMethodTracing();
     }
+<<<<<<< HEAD
     public void uploadVideo(View v) throws IOException {
         Intent GalleryIntent = new Intent();
         GalleryIntent.setType("video/*");
@@ -213,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(Intent.createChooser(GalleryIntent,
                 "select video"), SELECT_VIDEO);
     }
+=======
+>>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void scrollPhotos(View v) {
@@ -233,14 +259,18 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
             displayPhoto(photo);
         }
     }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void addCaption(View v) {
         displayPhoto(photoListPresenter.addCaption(caption.getText().toString()));
     }
 
+<<<<<<< HEAD
     public void sortFiles(View v) {
         photoListPresenter.sortList();
     }
+=======
+>>>>>>> a85eb0d87d4d28e82c2e3ee18aa205317ab5eda3
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void displayPhoto(Photo photo) {
@@ -286,12 +316,15 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE) {
+            Debug.startMethodTracing("SearchResult");
             if (resultCode == RESULT_OK) {
                 DateFormat format = new SimpleDateFormat("yyyy‐MM‐dd HH:mm:ss");
                 Date startTimestamp, endTimestamp;
                 try {
                     String from = (String) data.getStringExtra("STARTTIMESTAMP");
                     String to = (String) data.getStringExtra("ENDTIMESTAMP");
+                    System.out.println(from);
+                    System.out.println(to);
                     startTimestamp = format.parse(from);
                     endTimestamp = format.parse(to);
                 } catch (Exception ex) {
@@ -301,9 +334,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 String keywords = (String) data.getStringExtra("KEYWORDS");
                 String topLeft = data.getStringExtra("TOPLEFT");
                 String bottomRight = data.getStringExtra("BOTTOMRIGHT");
-
                 displayPhoto(photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight));
             }
+            Debug.stopMethodTracing();
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -315,19 +348,22 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void onSuccess(Location location) {
-                            // Got last known location. In some rare situations this can be null.
+                            double mLatitude = -1;
+                            double mLongitude = -1;
                             if (location != null) {
-                                double mLatitude = location.getLatitude();
-                                double mLongitude = location.getLongitude();
-                                //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
-                                imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
-                                //EditText et = (EditText) findViewById(R.id.etCaption);
-                                caption.setText("");
-                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                                Photo photo = new Photo ( mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
-                                photoListPresenter.addPhoto(photo, photosFilePath);
-                                displayPhoto(photo);
+                                mLatitude = location.getLatitude();
+                                mLongitude = location.getLongitude();
+
                             }
+                            //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
+                            imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
+                            //EditText et = (EditText) findViewById(R.id.etCaption);
+                            caption.setText("");
+                            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                            Photo photo = new Photo(mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
+                            photoListPresenter.addPhoto(photo, photosFilePath);
+                            displayPhoto(photo);
+
                         }
                     });
         }
