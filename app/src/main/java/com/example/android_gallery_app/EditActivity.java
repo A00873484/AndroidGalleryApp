@@ -183,7 +183,8 @@ public class EditActivity extends AppCompatActivity {
         sublayout.setOrientation(LinearLayout.HORIZONTAL);
         EditText txtTag = new EditText(this);
         txtTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        txtTag.setText("Text");
+        txtTag.setText("");
+        txtTag.setMinWidth(500);
         txtTag.setId(++addinput);
         Button btnTag = new Button(this);
         btnTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
