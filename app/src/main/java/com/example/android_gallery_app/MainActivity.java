@@ -6,6 +6,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import android.Manifest;
+import android.util.Base64;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -16,17 +19,23 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Base64;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.cloudinary.Transformation;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.example.android_gallery_app.model.GraphicFactory;
 import com.example.android_gallery_app.model.Photo;
 import com.example.android_gallery_app.model.PhotoList;
@@ -41,25 +50,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.text.DateFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements Serializable, MainView {
 
-    static
-    {
-        System.loadLibrary("NativeImageProcessor");
-    }
-
     private PhotoListPresenter photoListPresenter;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int SELECT_VIDEO  = 2;
+    private String gifUrl;
     String mCurrentPhotoPath, photosFilePath;
-    //private JSONObject photos = null;
-
-    //private int index = 0;
 
     Button btnNext;
     Button btnPrev;
@@ -67,43 +73,40 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     ImageView imageView;
     EditText caption;
     TextView time;
+    ProgressBar progressBar;
 
-    //Button button;
-    //List<Photo> list = new ArrayList<Photo>();
-    //ArrayList<Photo> foundPhotos = new ArrayList<>();
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 88;
-    static final int EDIT_ACTIVITY_REQUEST_CODE = 80;
+    static final int EDIT_ACTIVITY_REQUEST_CODE = 89;
     private FusedLocationProviderClient fusedLocationClient;
-    public String currentPhoto;
     GraphicFactory graphicFactory;
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Debug.startMethodTracing("onCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        setContentView(R.layout.activity_main);
+        MediaManager.init(this);
         btnNext = (Button) findViewById(R.id.btnNext);
         btnPrev = (Button) findViewById(R.id.btnPrev);
         imageView = findViewById(R.id.ivGallery);
         caption = (EditText) findViewById(R.id.etCaption);
         time = (TextView) findViewById(R.id.tvTimestamp);
         reset = (Button) findViewById(R.id.reset);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         photoListPresenter = new PhotoList(MainActivity.this);
         graphicFactory = new GraphicFactory();
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         try {
             showOriginalView();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Debug.stopMethodTracing();
     }
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void showOriginalView() throws IOException {
         boolean fileExists = false;
@@ -120,8 +123,19 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     Scanner myReader = new Scanner(myObj);
                     while (myReader.hasNextLine()) {
                         String data = myReader.nextLine();
-                        String arr[] = data.split(",");
-                        photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], arr.length>4?arr[4]:null));
+                        if( data.contains("gif")) {
+                            photoListPresenter.addPhoto(new Photo(data.substring(0, data.length() - 4)));
+                        }
+                        else {
+                            String arr[] = data.split(",");
+                            String caption;
+                            if (arr.length == 4) {
+                                caption = "";
+                            } else {
+                                caption = arr[4];
+                            }
+                            photoListPresenter.addPhoto(new Photo(arr[0], new Double(arr[2]), new Double(arr[1]), arr[3], caption));
+                        }
                     }
                     displayPhoto(photoListPresenter.getPhoto());
                     break;
@@ -173,12 +187,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
     }
 
-    public void goToEdit(View view) throws IOException {
-        Intent intent = new Intent(this, EditActivity.class);
-        intent.putExtra("PHOTO", photoListPresenter.getPhoto());
-        startActivityForResult(intent, EDIT_ACTIVITY_REQUEST_CODE);
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void deletePhoto(View view) throws IOException {
         photoListPresenter.deletePhoto(mCurrentPhotoPath);
@@ -186,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     }
 
     public void takePhoto(View v) throws IOException {
-        Debug.startMethodTracing("TakePhoto");
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile = null;
@@ -202,7 +209,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
-        Debug.stopMethodTracing();
+    }
+    public void uploadVideo(View v) throws IOException {
+        Intent GalleryIntent = new Intent();
+        GalleryIntent.setType("video/*");
+        GalleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(GalleryIntent,
+                "select video"), SELECT_VIDEO);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -224,20 +237,30 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
             displayPhoto(photo);
         }
     }
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void addCaption(View v) {
         displayPhoto(photoListPresenter.addCaption(caption.getText().toString()));
     }
 
+    public void sortFiles(View v) {
+        photoListPresenter.sortList();
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void displayPhoto(Photo photo) {
+
         if (photo == null) {
             imageView.setImageResource(R.mipmap.ic_launcher);
             caption.setText("");
             time.setText("");
-        } else {
+        } else if (photo.getType() != null) {
+            mCurrentPhotoPath = photo.getFile();
+            time.setText("FILE TYPE: GIF");
+            caption.setVisibility(View.INVISIBLE);
+            Glide.with(getApplicationContext()).asGif().load(mCurrentPhotoPath).into(imageView);
+        }
+        else {
+            caption.setVisibility(View.VISIBLE);
             mCurrentPhotoPath = photo.getFile();
             imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
             time.setText(photo.getTimeStamp());
@@ -246,7 +269,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                     caption.setText(photo.getCaption());
                 } else {
                     caption.setText("");
-
                 }
             } else {
                 caption.setText("");
@@ -268,15 +290,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE) {
-            Debug.startMethodTracing("SearchResult");
             if (resultCode == RESULT_OK) {
                 DateFormat format = new SimpleDateFormat("yyyy‐MM‐dd HH:mm:ss");
                 Date startTimestamp, endTimestamp;
                 try {
                     String from = (String) data.getStringExtra("STARTTIMESTAMP");
                     String to = (String) data.getStringExtra("ENDTIMESTAMP");
-                    System.out.println(from);
-                    System.out.println(to);
                     startTimestamp = format.parse(from);
                     endTimestamp = format.parse(to);
                 } catch (Exception ex) {
@@ -286,9 +305,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 String keywords = (String) data.getStringExtra("KEYWORDS");
                 String topLeft = data.getStringExtra("TOPLEFT");
                 String bottomRight = data.getStringExtra("BOTTOMRIGHT");
+
                 displayPhoto(photoListPresenter.findPhotos_second(startTimestamp, endTimestamp, keywords, topLeft, bottomRight));
             }
-            Debug.stopMethodTracing();
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -300,22 +319,19 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void onSuccess(Location location) {
-                            double mLatitude = -1;
-                            double mLongitude = -1;
+                            // Got last known location. In some rare situations this can be null.
                             if (location != null) {
-                                mLatitude = location.getLatitude();
-                                mLongitude = location.getLongitude();
-
+                                double mLatitude = location.getLatitude();
+                                double mLongitude = location.getLongitude();
+                                //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
+                                imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
+                                //EditText et = (EditText) findViewById(R.id.etCaption);
+                                caption.setText("");
+                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                                Photo photo = new Photo ( mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
+                                photoListPresenter.addPhoto(photo, photosFilePath);
+                                displayPhoto(photo);
                             }
-                            //ImageView mImageView = (ImageView) findViewById(R.id.ivGallery);
-                            imageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentPhotoPath));
-                            //EditText et = (EditText) findViewById(R.id.etCaption);
-                            caption.setText("");
-                            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                            Photo photo = new Photo(mCurrentPhotoPath, mLatitude, mLongitude, timeStamp, "");
-                            photoListPresenter.addPhoto(photo, photosFilePath);
-                            displayPhoto(photo);
-
                         }
                     });
         }
@@ -332,6 +348,55 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
                 displayPhoto(photo);
 
             }
+        }
+        if (requestCode == SELECT_VIDEO && resultCode == RESULT_OK) {
+            Uri selectedVideo = data.getData();
+
+            MediaManager.get()
+                    .upload(selectedVideo)
+                    .unsigned("zlqihqsa")
+                    .option("resource_type", "video")
+                    .callback(new UploadCallback() {
+                        @Override
+                        public void onStart(String requestId) {
+                            progressBar.setVisibility(View.VISIBLE);
+                            Toast.makeText(MainActivity.this,
+                                    "Upload has started ...", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onProgress(String requestId, long bytes, long totalBytes) { }
+
+                        @Override
+                        public void onSuccess(String requestId, Map resultData) {
+                            progressBar.setVisibility(View.INVISIBLE);
+                            Toast.makeText(MainActivity.this, "Uploaded Succesfully",
+                                    Toast.LENGTH_SHORT).show();
+
+                            String publicId = resultData.get("public_id").toString();
+
+                            gifUrl = MediaManager.get().url().resourceType("video")
+                                    .transformation(new Transformation().videoSampling("25")
+                                            .delay("200").height(200).effect("loop:10").crop("scale"))
+                                    .format("gif").generate(publicId);
+                            Glide.with(getApplicationContext()).asGif().load(gifUrl).into(imageView);
+
+                            Photo photo = new Photo (gifUrl);
+                            photoListPresenter.addPhoto(photo, gifUrl);
+                        }
+
+                        @Override
+                        public void onError(String requestId, ErrorInfo error) {
+                            Toast.makeText(MainActivity.this,
+                                    "Upload Error", Toast.LENGTH_SHORT).show();
+                            Log.v("ERROR!!", error.getDescription());
+                        }
+
+                        @Override
+                        public void onReschedule(String requestId, ErrorInfo error) {
+
+                        }
+                    }).dispatch();
         }
     }
 

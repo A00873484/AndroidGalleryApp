@@ -1,26 +1,16 @@
 package com.example.android_gallery_app;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewManager;
@@ -35,7 +25,6 @@ import com.example.android_gallery_app.model.Photo;
 import com.zomato.photofilters.imageprocessors.Filter;
 import com.zomato.photofilters.imageprocessors.subfilters.ColorOverlaySubfilter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,35 +33,39 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-class Meme {
-    String text;
-    int x, y;
-    Paint paint;
-    Meme(String text, int x, int y, Paint paint){
-        this.text = text;
-        this.x = x;
-        this.y = y;
-        this.paint = paint;
-    }
-    public String getText(){
-        return text;
-    }
-    public int getX(){
-        return x;
-    }
-    public int getY(){
-        return y;
-    }
-    public void setPosition(int x, int y){
-        this.x = x;
-        this.y = y;
-    }
-    public Paint getPaint(){
-        return paint;
-    }
-}
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
+
 
 public class EditActivity extends AppCompatActivity {
+    class Meme {
+        String text;
+        int x, y;
+        Paint paint;
+        Meme(String text, int x, int y, Paint paint){
+            this.text = text;
+            this.x = x;
+            this.y = y;
+            this.paint = paint;
+        }
+        public String getText(){
+            return text;
+        }
+        public int getX(){
+            return x;
+        }
+        public int getY(){
+            return y;
+        }
+        public void setPosition(int x, int y){
+            this.x = x;
+            this.y = y;
+        }
+        public Paint getPaint(){
+            return paint;
+        }
+    }
 
     Button age;
     Button blackwhite;

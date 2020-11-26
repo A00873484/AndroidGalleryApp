@@ -48,7 +48,6 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
     public void deletePhoto(String mCurrentPhotoPath) throws IOException {
         for (Photo photo: list) {
             if(photo.getFile().equals(mCurrentPhotoPath)) {
-                list.remove(photo);
                 File file = new File(Environment.getExternalStorageDirectory()
                         .getAbsolutePath(), "/Android/data/com.example.android_gallery_app/files/Pictures");
                 File[] fList = file.listFiles();
@@ -78,9 +77,15 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         File file = new File(Environment.getExternalStorageDirectory()
                 .getAbsolutePath(), "/Android/data/com.example.android_gallery_app/files/Pictures");
         File[] fList = file.listFiles();
-        if(startTimestamp == null || endTimestamp == null){
-            return null;
+
+        // Remove all the gif files, we do not want these results to show in the search
+        for (Photo photo: list) {
+            if(photo.getType() != null) {
+                removedPhotos.add(photo);
+            }
         }
+        list.removeAll(removedPhotos);
+
         if (fList != null) {
             for (File f : fList) {
                 String split[] = f.getPath().split("\\.");
@@ -99,28 +104,21 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         if(topLeft.length() > 0 && bottomRight.length() > 0) {
             String topLeftCoord[] = topLeft.split(",");
             String bottomRightCoord[] = bottomRight.split(",");
-            int j = 0;
             for (Photo photo: list) {
-                if (!(new Double(topLeftCoord[0]) < photo.getLat() && new Double(topLeftCoord[0]) < photo.getLng())
-                        && !(new Double(bottomRightCoord[0]) > photo.getLat() && new Double(bottomRightCoord[0]) > photo.getLng())) {
-                    removedPhotos.add(photo);
+                    if (!(new Double(topLeftCoord[0]) < photo.getLat() && new Double(topLeftCoord[0]) < photo.getLng())
+                            && !(new Double(bottomRightCoord[0]) > photo.getLat() && new Double(bottomRightCoord[0]) > photo.getLng())) {
+                        removedPhotos.add(photo);
+                    }
                 }
-                j++;
-            }
         }
         if (keywords.length() > 0) {
             for(Photo ph : list) {
-                if(ph.getCaption() == null){
+                if (!ph.getCaption().contains(keywords)) {
                     removedPhotos.add(ph);
                 }
-                else if (!ph.getCaption().contains(keywords)) {
-                    removedPhotos.add(ph);
 
-                }
             }
         }
-        System.out.println("HEY LOOK HERE TOO");
-        System.out.println(removedPhotos);
         list.removeAll(removedPhotos);
         if(list.isEmpty() == true ) {
             return new Photo("", 0.0 , 0.0, "");
@@ -169,7 +167,6 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
                 photo = ph;
                 currentPhotoPath = photo.getFile();
                 break;
-                //displayPhoto(ph.getFile());
             }
             i++;
         }
@@ -180,9 +177,12 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
     public void addPhoto(Photo photo, String fileTxtPath) {
         list.add(photo);
         currentPhotoPath = photo.getFile();
-        fileTxtPathFull = fileTxtPath;
+        if(photo.getType() == null ){
+            fileTxtPathFull = fileTxtPath;
+        }
         writeToFile();
     }
+
     public void addPhoto(Photo photo) {
         list.add(photo);
     }
@@ -192,7 +192,6 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
     private void writeToFile() {
         FileWriter myWriter = null;
         try {
-            System.out.println("fileTxtPathFull" + fileTxtPathFull);
             if (fileTxtPathFull != null) {
                 myWriter = new FileWriter(fileTxtPathFull);
             } else {
@@ -211,7 +210,12 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
 
             StringBuilder str = new StringBuilder("");
             for (Photo photo: list) {
-                str.append(photo.toString());
+                if (photo.getType() != null) {
+                    System.out.println("TO STRING: " + photo.toString(true));
+                    str.append(photo.toString(true));
+                } else {
+                    str.append(photo.toString());
+                }
             }
             myWriter.append(str);
             myWriter.close();
@@ -219,5 +223,17 @@ public class PhotoList extends AppCompatActivity implements PhotoListPresenter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public void sortList () {
+        for (int i=0; i<list.size(); i++) {
+            if(list.get(i).getType() != null ) {
+                Photo ph = list.get(i);
+                int index = list.indexOf(ph);
+                list.remove(index);
+                list.add(ph);
+                i++;
+            }
+        }
+        writeToFile();
     }
 }
