@@ -1,5 +1,7 @@
 package com.example.android_gallery_app;
 
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -33,40 +35,35 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
-
+class Meme {
+    String text;
+    int x, y;
+    Paint paint;
+    Meme(String text, int x, int y, Paint paint){
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.paint = paint;
+    }
+    public String getText(){
+        return text;
+    }
+    public int getX(){
+        return x;
+    }
+    public int getY(){
+        return y;
+    }
+    public void setPosition(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
+    public Paint getPaint(){
+        return paint;
+    }
+}
 
 public class EditActivity extends AppCompatActivity {
-    class Meme {
-        String text;
-        int x, y;
-        Paint paint;
-        Meme(String text, int x, int y, Paint paint){
-            this.text = text;
-            this.x = x;
-            this.y = y;
-            this.paint = paint;
-        }
-        public String getText(){
-            return text;
-        }
-        public int getX(){
-            return x;
-        }
-        public int getY(){
-            return y;
-        }
-        public void setPosition(int x, int y){
-            this.x = x;
-            this.y = y;
-        }
-        public Paint getPaint(){
-            return paint;
-        }
-    }
-
     Button age;
     Button blackwhite;
     Button reset;
@@ -280,14 +277,13 @@ public class EditActivity extends AppCompatActivity {
     }
 
     public void save(View view) throws IOException {
-
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File photoFile = File.createTempFile(imageFileName, ".jpg",storageDir);
-
         OutputStream os;
+
         try {
             os = new FileOutputStream(photoFile);
             currentPhoto.compress(Bitmap.CompressFormat.JPEG, 100, os);
