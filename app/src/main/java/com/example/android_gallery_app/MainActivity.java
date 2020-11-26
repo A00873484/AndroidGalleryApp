@@ -6,8 +6,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import android.Manifest;
-import android.app.DownloadManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -28,12 +26,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
 import com.cloudinary.Transformation;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.evernote.android.job.JobApi;
+import com.evernote.android.job.JobConfig;
 import com.example.android_gallery_app.model.GraphicFactory;
 import com.example.android_gallery_app.model.Photo;
 import com.example.android_gallery_app.model.PhotoList;
@@ -56,11 +55,16 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements Serializable, MainView {
+    static
+    {
+        System.loadLibrary("NativeImageProcessor");
+    }
 
     private PhotoListPresenter photoListPresenter;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int SELECT_VIDEO  = 2;
+    static final int EDIT_ACTIVITY_REQUEST_CODE = 80;
     private String gifUrl;
     String mCurrentPhotoPath, photosFilePath;
 
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -181,6 +186,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
     public void goToSearch(View view) throws IOException {
         Intent intent = new Intent(this, SearchActivity.class);
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
+    }
+
+    public void goToEdit(View view) throws IOException {
+        Intent intent = new Intent(this, EditActivity.class);
+        intent.putExtra("PHOTO", photoListPresenter.getPhoto());
+        startActivityForResult(intent, EDIT_ACTIVITY_REQUEST_CODE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

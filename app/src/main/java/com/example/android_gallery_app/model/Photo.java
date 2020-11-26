@@ -29,6 +29,10 @@ public class Photo implements Serializable, Graphic {
         return file;
     }
 
+    public void setFile(String file) {
+        this.file = file;
+    }
+
     public String getType() {
         return type;
     }
