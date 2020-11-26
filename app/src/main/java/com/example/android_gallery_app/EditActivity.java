@@ -2,19 +2,17 @@ package com.example.android_gallery_app;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.os.Environment;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewManager;
@@ -29,8 +27,13 @@ import com.example.android_gallery_app.model.Photo;
 import com.zomato.photofilters.imageprocessors.Filter;
 import com.zomato.photofilters.imageprocessors.subfilters.ColorOverlaySubfilter;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 class Meme {
     String text;
@@ -61,7 +64,6 @@ class Meme {
 }
 
 public class EditActivity extends AppCompatActivity {
-
     Button age;
     Button blackwhite;
     Button reset;
@@ -73,7 +75,7 @@ public class EditActivity extends AppCompatActivity {
     Photo holdPhoto;
     Bitmap holdBit;
     Bitmap currentPhoto;
-
+    Bitmap finalmeme = null;
     Bitmap bitMeme=null; int currentMeme=-1; boolean activeMeme = false; ToggleButton togglemove = null;
 
     int addlayout = 500;
@@ -156,18 +158,21 @@ public class EditActivity extends AppCompatActivity {
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inMutable = true;
         currentPhoto = BitmapFactory.decodeFile(holdPhoto.getFile(), opts);
-        imageView.setImageBitmap(holdBit);
+        finalmeme = holdBit;
+        imageView.setImageBitmap(finalmeme);
         populateText();
     }
 
     public void setBlackwhite(View view) throws IOException {
-        imageView.setImageBitmap(this.createContrast(currentPhoto, 20));
+        finalmeme = this.createContrast(currentPhoto, 20);
+        imageView.setImageBitmap(finalmeme);
         populateText();
     }
 
     public void setAge(View view) throws IOException {
         prok = !prok;
-        imageView.setImageBitmap(this.addAge(currentPhoto, prok?1:0));
+        finalmeme = this.addAge(currentPhoto, prok?1:0);
+        imageView.setImageBitmap(finalmeme);
         populateText();
     }
 
@@ -275,8 +280,25 @@ public class EditActivity extends AppCompatActivity {
     }
 
     public void save(View view) throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File photoFile = File.createTempFile(imageFileName, ".jpg",storageDir);
+        OutputStream os;
+
+        try {
+            os = new FileOutputStream(photoFile);
+            finalmeme.compress(Bitmap.CompressFormat.JPEG, 100, os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+        }
         Intent i = new Intent();
-        i.putExtra("BITMAPIMAGE", currentPhoto);
+        i.putExtra("NEWPHOTO", photoFile.getAbsolutePath());
+        i.putExtra("LAT", holdPhoto.getLat().toString());
+        i.putExtra("LNG", holdPhoto.getLng().toString());
         setResult(RESULT_OK, i);
         finish();
     }
@@ -303,6 +325,7 @@ public class EditActivity extends AppCompatActivity {
         for(int i=0; i<textHistory.size(); i++){
             tempCanvas.drawText(textHistory.get(i).getText(), textHistory.get(i).getX(), textHistory.get(i).getY(), textHistory.get(i).getPaint());
         }
+        finalmeme = new BitmapDrawable(getResources(), tempBitmap).getBitmap();
         imageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
     }
 
@@ -311,7 +334,8 @@ public class EditActivity extends AppCompatActivity {
         if (photo == null) {
             imageView.setImageResource(R.mipmap.ic_launcher);
         } else {
-            imageView.setImageBitmap(BitmapFactory.decodeFile(photo.getFile()));
+            finalmeme = BitmapFactory.decodeFile(photo.getFile());
+            imageView.setImageBitmap(finalmeme);
         }
     }
 
@@ -320,6 +344,7 @@ public class EditActivity extends AppCompatActivity {
         Canvas tempCanvas = new Canvas(tempBitmap);
         tempCanvas.drawBitmap(bitMeme, 0, 0, null);
         tempCanvas.drawText(textHistory.get(currentMeme).getText(), x, y, textHistory.get(currentMeme).getPaint());
+        finalmeme = new BitmapDrawable(getResources(), tempBitmap).getBitmap();
         imageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
     }
 

@@ -27,6 +27,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.github.zomato:androidphotofilters:1.0.1'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
