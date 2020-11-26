@@ -2,6 +2,7 @@ package com.example.android_gallery_app;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,8 +13,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,8 +35,14 @@ import com.example.android_gallery_app.model.Photo;
 import com.zomato.photofilters.imageprocessors.Filter;
 import com.zomato.photofilters.imageprocessors.subfilters.ColorOverlaySubfilter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 class Meme {
     String text;
@@ -275,8 +287,26 @@ public class EditActivity extends AppCompatActivity {
     }
 
     public void save(View view) throws IOException {
+
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File photoFile = File.createTempFile(imageFileName, ".jpg",storageDir);
+
+        OutputStream os;
+        try {
+            os = new FileOutputStream(photoFile);
+            currentPhoto.compress(Bitmap.CompressFormat.JPEG, 100, os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+        }
         Intent i = new Intent();
-        i.putExtra("BITMAPIMAGE", currentPhoto);
+        i.putExtra("NEWPHOTO", photoFile.getAbsolutePath());
+        i.putExtra("LAT", holdPhoto.getLat().toString());
+        i.putExtra("LNG", holdPhoto.getLng().toString());
         setResult(RESULT_OK, i);
         finish();
     }

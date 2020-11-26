@@ -19,6 +19,8 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,6 +39,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -289,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 5);
+                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION }, 5);
                 return;
             }
             fusedLocationClient.getLastLocation()
@@ -315,6 +318,20 @@ public class MainActivity extends AppCompatActivity implements Serializable, Mai
 
                         }
                     });
+        }
+        if(requestCode == EDIT_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                String newphoto = (String) data.getStringExtra("NEWPHOTO");
+                double mLatitude = (double) Double.parseDouble(data.getStringExtra("LAT"));
+                double mLongitude = (double) Double.parseDouble(data.getStringExtra("LNG"));
+
+                imageView.setImageBitmap(BitmapFactory.decodeFile(newphoto));
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                Photo photo = new Photo(newphoto, mLatitude, mLongitude, timeStamp, "");
+                photoListPresenter.addPhoto(photo, photosFilePath);
+                displayPhoto(photo);
+
+            }
         }
     }
 
