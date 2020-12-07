@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
@@ -92,7 +94,7 @@ public class EditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
         age = (Button) findViewById(R.id.age);
-        blackwhite = (Button) findViewById(R.id.blackwhite);
+        //blackwhite = (Button) findViewById(R.id.blackwhite);
         reset = (Button) findViewById(R.id.reset);
         imageView = findViewById(R.id.imageView);
         holdPhoto = (Photo) getIntent().getSerializableExtra("PHOTO");
@@ -160,11 +162,50 @@ public class EditActivity extends AppCompatActivity {
         currentPhoto = BitmapFactory.decodeFile(holdPhoto.getFile(), opts);
         finalmeme = holdBit;
         imageView.setImageBitmap(finalmeme);
+
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(1);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        imageView.setColorFilter(filter);
+
+        BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+        finalmeme = drawable.getBitmap();
+
         populateText();
     }
 
+    public Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
+        /*int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;*/
+        int height = bmpOriginal.getHeight();
+        int width = bmpOriginal.getWidth();
+        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(bm);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        int xo = (width-500)/2;
+        int yo = (height-500)/2;
+        c.drawBitmap(bm, -xo, -yo, paint);
+        bm.recycle();
+        return bm;
+    }
+
     public void setBlackwhite(View view) throws IOException {
-        finalmeme = this.createContrast(currentPhoto, 20);
+        finalmeme = toGrayscale(currentPhoto);
         imageView.setImageBitmap(finalmeme);
         populateText();
     }

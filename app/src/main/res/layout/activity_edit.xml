@@ -17,27 +17,14 @@
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
     <Button
-        android:id="@+id/blackwhite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="25dp"
-        android:layout_marginTop="25dp"
-        android:onClick="setBlackwhite"
-        android:text="Black+White"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
-
-    <Button
         android:id="@+id/reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="33dp"
-        android:layout_marginStart="33dp"
-        android:layout_marginTop="25dp"
+        android:layout_marginEnd="192dp"
+        android:layout_marginTop="24dp"
         android:onClick="setReset"
         android:text="Reset"
         app:layout_constraintEnd_toStartOf="@+id/age"
-        app:layout_constraintStart_toEndOf="@+id/blackwhite"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
@@ -56,13 +43,11 @@
         android:layout_width="418dp"
         android:layout_height="191dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/blackwhite"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/reset" />
 
     <Button
         android:id="@+id/savebutton"
